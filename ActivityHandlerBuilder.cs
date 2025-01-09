@@ -1,3 +1,5 @@
+using KristofferStrube.ActivityStreams;
+
 namespace Fediverse;
 
 public class ActivityHandlerBuilder{
@@ -7,7 +9,7 @@ public class ActivityHandlerBuilder{
         _activityPub = activityPub;
     }
 
-    public ActivityHandlerBuilder On(string type, Action<Context, object> action) {
+    public ActivityHandlerBuilder On(ActivityType type, Action<Context, Activity> action) {
         _activityPub.RegisterHandler(type, action);
         return this;
     }

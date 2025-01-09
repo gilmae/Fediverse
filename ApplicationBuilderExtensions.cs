@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using KristofferStrube.ActivityStreams;
 
 namespace Fediverse;
 
 public static class WebApplicationBuilderExtensions {
-    public static void SetActorDispatcher(this WebApplication app, string pattern, Func<Context, string, object> func) {
+    public static void SetActorDispatcher(this WebApplication app, string pattern, Func<Context, string, Actor> func) {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null) {
             return;
