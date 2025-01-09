@@ -1,0 +1,35 @@
+namespace Fediverse;
+
+public enum ActivityType
+{
+    Accept,
+    Activity,
+    Add,
+    Announce,
+    Arrive,
+    Block,
+    Create,
+    Delete,
+    Dislike,
+    Flag,
+    Follow,
+    Ignore,
+    IntransitiveActivity,
+    Invite,
+    Join,
+    Leave,
+    Like,
+    Listen,
+    Move,
+    Offer,
+    Question,
+    Read,
+    Reject,
+    Remove,
+    TentativeAccept,
+    TentativeReject,
+    Travel,
+    Undo,
+    Update,
+    View
+}

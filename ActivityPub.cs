@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Http;
+using AS = KristofferStrube.ActivityStreams;
 
 namespace Fediverse;
 
 public class ActivityPub {
 
-    private Func<Context, string, object>? _profileProvider;
-    private readonly IDictionary<string, Action<Context, object>> _activityHandlers = new Dictionary<string, Action<Context, object>>();
+    private Func<Context, string, AS.Actor>? _profileProvider;
+    private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
 
     private IServiceProvider _services;
     
@@ -15,11 +16,11 @@ public class ActivityPub {
         _profileProvider = null;
     }
     
-    internal void SetProfileProvider( Func<Context, string, object> profileProvider) {
+    internal void SetProfileProvider( Func<Context, string, AS.Actor> profileProvider) {
         _profileProvider = profileProvider;
     }
 
-    internal void RegisterHandler(string type, Action<Context, object> handler){
+    internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler){
         _activityHandlers[type] = handler;
     }
 
