@@ -13,6 +13,34 @@ public class Context {
         _linkGenerator = linkGenerator;
         _httpClient = httpClientFactory.CreateClient("activityPub");
     }
+    public async void SendActivity(IObjectOrLink sender, IObjectOrLink recipient, Activity activity)
+    {
+        string serialisedData = JsonSerializer.Serialize(activity);
+        using HttpContent body = new StringContent(serialisedData, encoding: Encoding.UTF8, mediaType: "application/activity+json");
+
+        string? endpoint = (await GetObject<Actor>(recipient))?.Inbox?.Id;
+        if (endpoint == null) {
+            return; //false
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = body,
+        };
+
+        request.Headers.Add("Accept", "application/activity+json");
+
+        // if (signatureContext != null) {
+        //     signatureContext.SignRequest(request);
+        // }
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(request);
+        // var responseStream  = await response.Content.ReadAsStreamAsync();
+        // using StreamReader reader = new StreamReader(responseStream);
+        // var responseMessage = reader.ReadToEnd();
+
+        response.EnsureSuccessStatusCode();
+    }
 
     public string? GetActorUri(string identifier) 
     {
