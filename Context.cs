@@ -26,4 +26,18 @@ public class Context {
 
         return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, "actorProfile", new { identifier });
     }
+    public string GetInboxUri(string identifier) {
+        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        if (httpContextAccessor == null)
+        {
+            return null;
+        }
+
+        if (httpContextAccessor.HttpContext == null)
+        {
+            return null;
+        }
+
+        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, "inboxEndpoint", new { identifier });
+    }
 }
