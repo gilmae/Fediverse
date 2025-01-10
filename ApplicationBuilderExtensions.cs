@@ -36,7 +36,7 @@ public static class WebApplicationBuilderExtensions {
         app.MapGet(pattern, async (string identifier) =>
         {
             return Results.Accepted();
-        }).WithName("inboxEndpoint") ;
+        }).WithName("inboxEndpoint");
 
         return app.Services.GetService(typeof(ActivityHandlerBuilder)) as ActivityHandlerBuilder;
     }    

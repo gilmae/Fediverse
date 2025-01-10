@@ -1,18 +1,40 @@
+using AS = KristofferStrube.ActivityStreams;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using System.Text.Json;
+using KristofferStrube.ActivityStreams;
+using System.Text;
 
 namespace Fediverse;
 
-public class Context {
+public class Context
+{
     private LinkGenerator _linkGenerator;
     private IServiceProvider _serviceProvider;
     private HttpClient _httpClient;
 
-    public Context(IServiceProvider serviceProvider, LinkGenerator linkGenerator) {
+
+    public Context(IServiceProvider serviceProvider, LinkGenerator linkGenerator, IHttpClientFactory httpClientFactory)
+    {
         _serviceProvider = serviceProvider;
         _linkGenerator = linkGenerator;
         _httpClient = httpClientFactory.CreateClient("activityPub");
     }
+
+    public Uri Url() {
+        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        if (httpContextAccessor == null)
+        {
+            return null;
+        }
+
+        if (httpContextAccessor.HttpContext == null)
+        {
+            return null;
+        }
+        return new Uri(httpContextAccessor.HttpContext.Request.Host.ToString());
+    }
+
     public async void SendActivity(IObjectOrLink sender, IObjectOrLink recipient, Activity activity)
     {
         string serialisedData = JsonSerializer.Serialize(activity);
@@ -42,10 +64,11 @@ public class Context {
         response.EnsureSuccessStatusCode();
     }
 
-    public string? GetActorUri(string identifier) 
+    public string? GetActorUri(string identifier)
     {
         var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        if (httpContextAccessor == null){ 
+        if (httpContextAccessor == null)
+        {
             return null;
         }
 
@@ -56,6 +79,7 @@ public class Context {
 
         return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, "actorProfile", new { identifier });
     }
+
     public string GetInboxUri(string identifier) {
         var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
         if (httpContextAccessor == null)
@@ -70,6 +94,7 @@ public class Context {
 
         return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, "inboxEndpoint", new { identifier });
     }
+
     public async Task<T?> GetObject<T>(AS.IObjectOrLink o)
     {
         T? obj = o switch

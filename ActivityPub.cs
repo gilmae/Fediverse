@@ -1,4 +1,5 @@
 using System.Text.Json;
+using KristofferStrube.ActivityStreams;
 using Microsoft.AspNetCore.Http;
 using AS = KristofferStrube.ActivityStreams;
 
@@ -6,13 +7,12 @@ namespace Fediverse;
 
 public class ActivityPub
 {
-
     private Func<Context, string, AS.Actor>? _profileProvider;
     private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
 
     private IServiceProvider _services;
 
-    public ActivityPub(IServiceProvider services)
+    public ActivityPub(IHttpClientFactory httpClientFactory, IServiceProvider services)
     {
         _services = services;
         _profileProvider = null;
