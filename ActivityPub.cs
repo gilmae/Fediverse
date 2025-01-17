@@ -1,5 +1,6 @@
 using System.Text.Json;
 using KristofferStrube.ActivityStreams;
+using KristofferStrube.ActivityStreams.JsonLD;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using AS = KristofferStrube.ActivityStreams;
@@ -64,6 +65,12 @@ public class ActivityPub
             return Results.StatusCode(500);
         }
 
+        var profile = _profileProvider.Invoke(ctx, resource);
+        profile.JsonLDContext = new List<ReferenceTermDefinition> {
+            new(new("https://www.w3.org/ns/activitystreams")),
+            new(new("https://w3id.org/security/v1"))
+        };
+        
         return Results.Json(_profileProvider.Invoke(ctx, resource));
     }
 
