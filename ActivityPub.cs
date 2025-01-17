@@ -1,13 +1,14 @@
 using System.Text.Json;
 using KristofferStrube.ActivityStreams;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
 using AS = KristofferStrube.ActivityStreams;
 
 namespace Fediverse;
 
 public class ActivityPub
 {
-    private Func<Context, string, AS.Actor>? _profileProvider;
+    private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
     private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
 
     private IServiceProvider _services;
@@ -21,6 +22,10 @@ public class ActivityPub
     internal void SetProfileProvider(Func<Context, string, AS.Actor> profileProvider)
     {
         _profileProvider = profileProvider;
+    }
+
+    internal void setKeypairsProvider(Func<Context, string, Tuple<RsaSecurityKey,RsaSecurityKey>> keypairsProvider) {
+        _keyPairsProvider = keypairsProvider;
     }
 
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
@@ -96,5 +101,12 @@ public class ActivityPub
         }
 
         return Results.Ok();
+    }
+
+    internal Tuple<RsaSecurityKey, RsaSecurityKey>? GetKeyPairsFromIdentifier(Context ctx, string identifier) {
+        if (_keyPairsProvider == null) {
+            return null;
+        }
+        return _keyPairsProvider.Invoke(ctx, identifier);
     }
 }

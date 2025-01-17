@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Routing;
 using System.Text.Json;
 using KristofferStrube.ActivityStreams;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace Fediverse;
 
@@ -12,13 +14,15 @@ public class Context
     private LinkGenerator _linkGenerator;
     private IServiceProvider _serviceProvider;
     private HttpClient _httpClient;
+    private ActivityPub _activityPub;
 
 
-    public Context(IServiceProvider serviceProvider, LinkGenerator linkGenerator, IHttpClientFactory httpClientFactory)
+    public Context(ActivityPub activityPub, IServiceProvider serviceProvider, LinkGenerator linkGenerator, IHttpClientFactory httpClientFactory)
     {
         _serviceProvider = serviceProvider;
         _linkGenerator = linkGenerator;
         _httpClient = httpClientFactory.CreateClient("activityPub");
+        _activityPub = activityPub;
     }
 
     public Uri Url() {
@@ -78,6 +82,31 @@ public class Context
         }
 
         return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, "actorProfile", new { identifier });
+    }
+
+    public CryptographicKey? GetActorKeyPairs(string identifier) {
+        string? owner = GetActorUri(identifier);
+        
+        if (string.IsNullOrEmpty(owner)) {
+            return null;
+        }
+
+        var pair = _activityPub.GetKeyPairsFromIdentifier(this, identifier);
+
+        if (pair == null) {
+            return null;
+        }
+
+        using (RSA publicKey = RSA.Create())
+        {
+            publicKey.ImportParameters(pair.Item2.Parameters);
+            return new CryptographicKey
+            {
+                Id = owner + "#main-key",
+                Owner = new Link { Href = new Uri(owner), JsonLDContext = null },
+                PublicKeyPem = publicKey.ExportRSAPublicKeyPem()
+            };
+        }
     }
 
     public string GetInboxUri(string identifier) {

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using KristofferStrube.ActivityStreams;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Fediverse;
 
@@ -24,6 +25,14 @@ public static class WebApplicationBuilderExtensions {
             return await activity.Profile(identifier);
         }).WithName("actorProfile") ;
         
+    }
+
+    public static void SetKeyPairsDispatcher(this WebApplication app, Func<Context, string, Tuple<RsaSecurityKey,RsaSecurityKey>> f) {
+        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        if (activity == null) {
+            return;
+        }
+        activity.setKeypairsProvider(f);
     }
 
     public static ActivityHandlerBuilder? SetInboxListener(this WebApplication app, string pattern)
