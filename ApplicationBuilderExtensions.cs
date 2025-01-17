@@ -7,13 +7,13 @@ using Microsoft.IdentityModel.Tokens;
 namespace Fediverse;
 
 public static class WebApplicationBuilderExtensions {
-    public static void SetActorDispatcher(this WebApplication app, string pattern, Func<Context, string, Actor> func) {
+    public static void SetActorDispatcher(this WebApplication app, string pattern, Func<Context, string, Actor?> f) {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null) {
             return;
         }
         
-        activity.SetProfileProvider(func);
+        activity.SetProfileProvider(f);
         
         app.MapGet("/.well-known/webfinger", async ([FromQuery] string resource) =>
         {

@@ -8,6 +8,7 @@ namespace Fediverse;
 
 public class ActivityPub
 {
+    private Func<Context, string, AS.Actor?>? _profileProvider;
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
     private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
 
