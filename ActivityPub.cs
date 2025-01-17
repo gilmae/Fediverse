@@ -10,6 +10,7 @@ namespace Fediverse;
 public class ActivityPub
 {
     private Func<Context, string, AS.Actor?>? _profileProvider;
+    private Func<Context, string, Collection> _followingDispatcher;
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
     private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
 
@@ -21,13 +22,17 @@ public class ActivityPub
         _profileProvider = null;
     }
 
-    internal void SetProfileProvider(Func<Context, string, AS.Actor> profileProvider)
+    internal void SetProfileProvider(Func<Context, string, AS.Actor?> profileProvider)
     {
         _profileProvider = profileProvider;
     }
 
     internal void setKeypairsProvider(Func<Context, string, Tuple<RsaSecurityKey,RsaSecurityKey>> keypairsProvider) {
         _keyPairsProvider = keypairsProvider;
+    }
+
+    internal void setFollowingDispatcher(Func<Context, string, Collection> f) {
+        _followingDispatcher = f;
     }
 
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
@@ -123,5 +128,15 @@ public class ActivityPub
             return null;
         }
         return _keyPairsProvider.Invoke(ctx, identifier);
+    }
+
+    internal Collection? Following(string identifier) {
+        Context ctx = _services.GetService(typeof(Context)) as Context;
+
+        if (ctx == null) {
+            return null;
+        }
+
+        return _followingDispatcher.Invoke(ctx, identifier);
     }
 }
