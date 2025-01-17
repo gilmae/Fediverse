@@ -57,6 +57,13 @@ public class ActivityPub
     internal async Task<IResult> Profile(string resource)
     {
         Context ctx = _services.GetService(typeof(Context)) as Context;
+        if (ctx == null) {
+            return Results.StatusCode(500);
+        }
+        if (_profileProvider == null) {
+            return Results.StatusCode(500);
+        }
+
         return Results.Json(_profileProvider.Invoke(ctx, resource));
     }
 
