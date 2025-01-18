@@ -14,7 +14,8 @@ public enum CollectionDispatcherTypes {
     /// <summary>
     /// Symbol for the Following collection
     /// </summary>
-    Following
+    Following,
+    Followers
 }
 public class ActivityPub
 {
@@ -43,6 +44,10 @@ public class ActivityPub
 
     internal void setFollowingDispatcher(Func<Context, string, string?, Collection> f) {
         _collectionDispatchers[CollectionDispatcherTypes.Following] = f;
+    }
+
+    internal void setCollectionDispatcher(CollectionDispatcherTypes type, Func<Context, string, string?, Collection> f) {
+        _collectionDispatchers[type] = f;
     }
 
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
@@ -154,5 +159,18 @@ public class ActivityPub
             return null;
         }
         return _collectionDispatchers[CollectionDispatcherTypes.Following].Invoke(ctx, identifier, cursor);
+    }
+
+    internal Collection? GetCollection(CollectionDispatcherTypes type, string identifier, string? cursor = null) {
+        Context? ctx = _services.GetService(typeof(Context)) as Context;
+
+        if (ctx == null) {
+            return null;
+        }
+
+        if (!_collectionDispatchers.ContainsKey(type)) {
+            return null;
+        }
+        return _collectionDispatchers[type].Invoke(ctx, identifier, cursor);
     }
 }
