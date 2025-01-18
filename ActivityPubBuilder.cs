@@ -1,5 +1,6 @@
 namespace Fediverse;
 
+[Obsolete]
 public class ActivityPubBuilder{
     private readonly ActivityPub _activity;
 

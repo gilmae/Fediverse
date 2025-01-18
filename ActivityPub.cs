@@ -7,10 +7,19 @@ using AS = KristofferStrube.ActivityStreams;
 
 namespace Fediverse;
 
+/// <summary>
+/// The different collecton types supported
+/// </summary>
+public enum CollectionDispatcherTypes {
+    /// <summary>
+    /// Symbol for the Following collection
+    /// </summary>
+    Following
+}
 public class ActivityPub
 {
     private Func<Context, string, AS.Actor?>? _profileProvider;
-    private Func<Context, string, Collection> _followingDispatcher;
+    private Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>> _collectionDispatchers;
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
     private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
 
@@ -20,6 +29,7 @@ public class ActivityPub
     {
         _services = services;
         _profileProvider = null;
+        _collectionDispatchers = new Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>>();
     }
 
     internal void SetProfileProvider(Func<Context, string, AS.Actor?> profileProvider)
@@ -31,8 +41,8 @@ public class ActivityPub
         _keyPairsProvider = keypairsProvider;
     }
 
-    internal void setFollowingDispatcher(Func<Context, string, Collection> f) {
-        _followingDispatcher = f;
+    internal void setFollowingDispatcher(Func<Context, string, string?, Collection> f) {
+        _collectionDispatchers[CollectionDispatcherTypes.Following] = f;
     }
 
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
@@ -79,15 +89,18 @@ public class ActivityPub
         return Results.Json(_profileProvider.Invoke(ctx, resource));
     }
 
-    internal async Task<IResult> Inbox(JsonDocument message)
+    internal IResult Inbox(JsonDocument message)
     {
         if (message == null)
         {
             return Results.BadRequest();
         }
         
-        Context ctx = _services.GetService(typeof(Context)) as Context;
-
+        Context? ctx = _services.GetService(typeof(Context)) as Context;
+        if (ctx == null) {
+            return Results.BadRequest();
+        }
+        
         JsonElement? activityType = message.RootElement.GetProperty("type");
         // Try the @type property instead
         if (activityType == null)
@@ -130,13 +143,16 @@ public class ActivityPub
         return _keyPairsProvider.Invoke(ctx, identifier);
     }
 
-    internal Collection? Following(string identifier) {
-        Context ctx = _services.GetService(typeof(Context)) as Context;
+    internal Collection? Following(string identifier, string? cursor = null) {
+        Context? ctx = _services.GetService(typeof(Context)) as Context;
 
         if (ctx == null) {
             return null;
         }
 
-        return _followingDispatcher.Invoke(ctx, identifier);
+        if (!_collectionDispatchers.ContainsKey(CollectionDispatcherTypes.Following)) {
+            return null;
+        }
+        return _collectionDispatchers[CollectionDispatcherTypes.Following].Invoke(ctx, identifier, cursor);
     }
 }
