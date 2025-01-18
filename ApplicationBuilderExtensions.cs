@@ -21,12 +21,12 @@ public static class WebApplicationBuilderExtensions
         app.MapGet("/.well-known/webfinger", async ([FromQuery] string resource) =>
         {
             return await activity.Webfinger(resource);
-        });
+        }).WithName(RoutingNames.Webfinger);
 
         app.MapGet(pattern, async (string identifier) =>
         {
             return await activity.Profile(identifier);
-        }).WithName("actorProfile");
+        }).WithName(RoutingNames.Profile);
 
     }
 
@@ -51,7 +51,7 @@ public static class WebApplicationBuilderExtensions
         app.MapPost(pattern, (string identifier) =>
         {
             return Results.Accepted();
-        }).WithName("inboxEndpoint");
+        }).WithName(RoutingNames.Inbox);
 
         return app.Services.GetService(typeof(ActivityHandlerBuilder)) as ActivityHandlerBuilder;
     }
@@ -69,6 +69,6 @@ public static class WebApplicationBuilderExtensions
         app.MapGet(pattern, (string identifier, string? cursor = null) =>
         {
             return activity.Following(identifier, cursor);
-        }).WithName("followingEndpoint");
+        }).WithName(RoutingNames.Following);
     }
 }
