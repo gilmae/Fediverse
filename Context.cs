@@ -81,7 +81,7 @@ public class Context
             return null;
         }
 
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, "actorProfile", new { identifier });
+        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, new { identifier });
     }
 
     public CryptographicKey? GetActorKeyPairs(string identifier) {
@@ -121,7 +121,7 @@ public class Context
             return null;
         }
 
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, "inboxEndpoint", new { identifier });
+        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Inbox, new { identifier });
     }
 
     public async Task<T?> GetObject<T>(AS.IObjectOrLink o)
