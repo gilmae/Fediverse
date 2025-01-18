@@ -68,22 +68,6 @@ public class Context
         response.EnsureSuccessStatusCode();
     }
 
-    public string? GetActorUri(string identifier)
-    {
-        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        if (httpContextAccessor == null)
-        {
-            return null;
-        }
-
-        if (httpContextAccessor.HttpContext == null)
-        {
-            return null;
-        }
-
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, new { identifier });
-    }
-
     public CryptographicKey? GetActorKeyPairs(string identifier) {
         string? owner = GetActorUri(identifier);
         
@@ -109,7 +93,53 @@ public class Context
         }
     }
 
-    public string GetInboxUri(string identifier) {
+    public string? GetActorUri(string identifier)
+    {
+        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        if (httpContextAccessor == null)
+        {
+            return null;
+        }
+
+        if (httpContextAccessor.HttpContext == null)
+        {
+            return null;
+        }
+
+        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, new { identifier });
+    }
+
+    public string? GetFollowersUri(string identifier) {
+       var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        if (httpContextAccessor == null)
+        {
+            return null;
+        }
+
+        if (httpContextAccessor.HttpContext == null)
+        {
+            return null;
+        }
+
+        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Followers, new { identifier });
+    }
+
+    public string? GetFollowingUri(string identifier) {
+       var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        if (httpContextAccessor == null)
+        {
+            return null;
+        }
+
+        if (httpContextAccessor.HttpContext == null)
+        {
+            return null;
+        }
+
+        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Following, new { identifier });
+    }
+
+    public string? GetInboxUri(string identifier) {
         var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
         if (httpContextAccessor == null)
         {
