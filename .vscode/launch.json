@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": ".NET Core Launch (maat)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Fedi/bin/Debug/net8.0/Fedi.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Fedi",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        }
+    ]
+}
