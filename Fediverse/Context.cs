@@ -6,6 +6,7 @@ using KristofferStrube.ActivityStreams;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 
 namespace Fediverse;
 
@@ -15,8 +16,6 @@ public class Context
     private IServiceProvider _serviceProvider;
     private HttpClient _httpClient;
     private ActivityPub _activityPub;
-
-
     public Context(ActivityPub activityPub, IServiceProvider serviceProvider, LinkGenerator linkGenerator, IHttpClientFactory httpClientFactory)
     {
         _serviceProvider = serviceProvider;
@@ -24,8 +23,8 @@ public class Context
         _httpClient = httpClientFactory.CreateClient("activityPub");
         _activityPub = activityPub;
     }
-
-    public Uri Url() {
+    public Uri Url() 
+    {
         var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
         if (httpContextAccessor == null)
         {

@@ -1,7 +1,9 @@
+using System.Security.Policy;
 using System.Text.Json;
 using KristofferStrube.ActivityStreams;
 using KristofferStrube.ActivityStreams.JsonLD;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.IdentityModel.Tokens;
 using AS = KristofferStrube.ActivityStreams;
 
@@ -19,6 +21,7 @@ public enum CollectionDispatcherTypes {
 }
 public class ActivityPub
 {
+    private readonly string _host;
     private Func<Context, string, AS.Actor?>? _profileProvider;
     private Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>> _collectionDispatchers;
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
@@ -26,11 +29,11 @@ public class ActivityPub
 
     private IServiceProvider _services;
 
-    public ActivityPub(IHttpClientFactory httpClientFactory, IServiceProvider services)
+    public ActivityPub(IServiceProvider services)
     {
         _services = services;
         _profileProvider = null;
-        _collectionDispatchers = new Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>>();
+        _collectionDispatchers = new Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>>();        
     }
 
     internal void SetProfileProvider(Func<Context, string, AS.Actor?> profileProvider)
@@ -50,6 +53,23 @@ public class ActivityPub
         _collectionDispatchers[type] = f;
     }
 
+    internal string? GetHostName() {
+        if (!string.IsNullOrEmpty(_host)) {
+            return _host;
+        }
+        
+        var httpContextAccessor = _services.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        return httpContextAccessor?.HttpContext?.Request?.Host.Host;
+    }
+
+    private string? ActorProfileLink(string identifier)
+    {
+        var httpContextAccessor = _services.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        LinkGenerator linkGenerator = _services.GetService(typeof(LinkGenerator)) as LinkGenerator;
+        RouteValueDictionary routeValues = new RouteValueDictionary();
+        return linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, );
+    }
+
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
     {
         _activityHandlers[type] = handler;
@@ -61,12 +81,11 @@ public class ActivityPub
         {
             return Results.Json(new
             {
-                subject = resource,
-                aliases = new[] { "" },
+                subject = $"{resource}@{GetHostName()}",
                 links = new[] {
                     new {
                         rel="self",
-                        href="",
+                        href=ActorProfileLink(resource.Substring(5)),
                         type="application/activity+json"
                     }
                 }
