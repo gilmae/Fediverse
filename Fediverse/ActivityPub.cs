@@ -66,8 +66,7 @@ public class ActivityPub
     {
         var httpContextAccessor = _services.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
         LinkGenerator linkGenerator = _services.GetService(typeof(LinkGenerator)) as LinkGenerator;
-        RouteValueDictionary routeValues = new RouteValueDictionary();
-        return linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, );
+        return linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, new { identifier });
     }
 
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
@@ -82,6 +81,7 @@ public class ActivityPub
             return Results.Json(new
             {
                 subject = $"{resource}@{GetHostName()}",
+                aliases = new[] { "" },
                 links = new[] {
                     new {
                         rel="self",
