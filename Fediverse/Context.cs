@@ -153,6 +153,21 @@ public class Context
         return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Inbox, new { identifier });
     }
 
+    public string? GetOutboxUri(string identifier) {
+        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
+        if (httpContextAccessor == null)
+        {
+            return null;
+        }
+
+        if (httpContextAccessor.HttpContext == null)
+        {
+            return null;
+        }
+
+        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Outbox, new { identifier });
+    }
+
     public async Task<T?> GetObject<T>(AS.IObjectOrLink o)
     {
         T? obj = o switch
