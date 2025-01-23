@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using KristofferStrube.ActivityStreams;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.Json;
 
 namespace Fediverse;
 
@@ -20,13 +21,14 @@ public static class WebApplicationBuilderExtensions
 
         app.MapGet("/.well-known/webfinger", async ([FromQuery] string resource) =>
         {
-            return await activity.Webfinger(resource);
+            var result = await activity.Webfinger(resource);
+            
         }).WithName(RoutingNames.Webfinger);
 
         app.MapGet(pattern, async (string identifier) =>
         {
             return await activity.Profile(identifier);
-        }).WithName(RoutingNames.Profile);
+        }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Profile);
 
     }
 
@@ -68,8 +70,8 @@ public static class WebApplicationBuilderExtensions
 
         app.MapGet(pattern, (string identifier, string? cursor = null) =>
         {
-            return activity.Following(identifier, cursor);
-        }).WithName(RoutingNames.Following);
+            return  Results.Json(activity.Following(identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
+        }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Following);
     }
 
     public static void SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, Collection> f)
@@ -84,7 +86,7 @@ public static class WebApplicationBuilderExtensions
 
         app.MapGet(pattern, (string identifier, string? cursor = null) =>
         {
-            return activity.GetCollection(CollectionDispatcherTypes.Followers, identifier, cursor);
+            return Results.Json(activity.GetCollection(CollectionDispatcherTypes.Followers, identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
         }).WithName(RoutingNames.Followers);
     }
 
@@ -100,7 +102,7 @@ public static class WebApplicationBuilderExtensions
 
         app.MapGet(pattern, (string identifier, string? cursor = null) =>
         {
-            return activity.GetCollection(CollectionDispatcherTypes.Outbox, identifier, cursor);
-        }).WithName(RoutingNames.Outbox);
+            return  Results.Json(activity.GetCollection(CollectionDispatcherTypes.Outbox, identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
+        }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Outbox);
     }
 }
