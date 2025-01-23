@@ -72,7 +72,6 @@ public static class WebApplicationBuilderExtensions
         }).WithName(RoutingNames.Following);
     }
 
-
     public static void SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, Collection> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
@@ -87,5 +86,21 @@ public static class WebApplicationBuilderExtensions
         {
             return activity.GetCollection(CollectionDispatcherTypes.Followers, identifier, cursor);
         }).WithName(RoutingNames.Followers);
+    }
+
+    public static void SetOutboxDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, Collection> f)
+    {
+        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        if (activity == null)
+        {
+            return;
+        }
+
+        activity.setCollectionDispatcher(CollectionDispatcherTypes.Outbox, f);
+
+        app.MapGet(pattern, (string identifier, string? cursor = null) =>
+        {
+            return activity.GetCollection(CollectionDispatcherTypes.Outbox, identifier, cursor);
+        }).WithName(RoutingNames.Outbox);
     }
 }

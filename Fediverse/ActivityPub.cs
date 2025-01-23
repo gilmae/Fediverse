@@ -17,7 +17,8 @@ public enum CollectionDispatcherTypes {
     /// Symbol for the Following collection
     /// </summary>
     Following,
-    Followers
+    Followers,
+    Outbox
 }
 public class ActivityPub
 {
