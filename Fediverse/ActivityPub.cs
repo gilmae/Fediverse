@@ -80,22 +80,29 @@ public class ActivityPub
 
     internal async Task<IResult> Webfinger(string resource)
     {
+        string username = resource;
+
         if (resource.StartsWith("acct:"))
         {
-            return Results.Json(new
-            {
-                subject = $"{resource}@{GetHostName()}",
-                aliases = new[] { "" },
-                links = new[] {
+            username = resource.Substring(5);
+        }
+        var actor = ActorProfileLink(username);
+        if (actor == null) {
+            return Results.NotFound();
+        }
+
+        return Results.Json(new
+        {
+            subject = $"{resource}@{GetHostName()}",
+            aliases = new[] { actor },
+            links = new[] {
                     new {
                         rel="self",
-                        href=ActorProfileLink(resource.Substring(5)),
+                        href=actor,
                         type="application/activity+json"
                     }
                 }
-            });
-        }
-        throw new NotImplementedException();
+        });
     }
 
     internal async Task<IResult> Profile(string resource)

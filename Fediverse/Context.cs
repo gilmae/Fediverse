@@ -92,7 +92,7 @@ public class Context
             return new CryptographicKey
             {
                 Id = owner + "#main-key",
-                Owner = new Link { Href = new Uri(owner), JsonLDContext = null },
+                Owner = owner,
                 PublicKeyPem = publicKey.ExportRSAPublicKeyPem()
             };
         }
