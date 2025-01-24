@@ -21,7 +21,7 @@ public static class WebApplicationBuilderExtensions
 
         app.MapGet("/.well-known/webfinger", async ([FromQuery] string resource) =>
         {
-            var result = await activity.Webfinger(resource);
+            return await activity.Webfinger(resource);
             
         }).WithName(RoutingNames.Webfinger);
 
