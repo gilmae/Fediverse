@@ -50,8 +50,9 @@ public static class WebApplicationBuilderExtensions
             return null;
         }
 
-        app.MapPost(pattern, (string identifier) =>
+        app.MapPost(pattern, (string identifier, [FromBody] JsonDocument message) =>
         {
+            activity.Inbox(message);
             return Results.Accepted();
         }).WithName(RoutingNames.Inbox);
 

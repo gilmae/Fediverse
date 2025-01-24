@@ -16,12 +16,15 @@ public class Context
     private IServiceProvider _serviceProvider;
     private HttpClient _httpClient;
     private ActivityPub _activityPub;
-    public Context(ActivityPub activityPub, IServiceProvider serviceProvider, LinkGenerator linkGenerator, IHttpClientFactory httpClientFactory)
+    private readonly ILogger<Context> _logger;
+
+    public Context(ILogger<Context> logger, ActivityPub activityPub, IServiceProvider serviceProvider, LinkGenerator linkGenerator, IHttpClientFactory httpClientFactory)
     {
         _serviceProvider = serviceProvider;
         _linkGenerator = linkGenerator;
         _httpClient = httpClientFactory.CreateClient("activityPub");
         _activityPub = activityPub;
+        _logger = logger;
     }
     public Uri Url() 
     {
@@ -40,14 +43,17 @@ public class Context
 
     public async void SendActivity(IObjectOrLink sender, IObjectOrLink recipient, Activity activity)
     {
+        _logger.LogInformation($"Sending activity to {JsonSerializer.Serialize(recipient)}");
         string serialisedData = JsonSerializer.Serialize(activity);
+        _logger.LogInformation(serialisedData);
+
         using HttpContent body = new StringContent(serialisedData, encoding: Encoding.UTF8, mediaType: "application/activity+json");
 
         string? endpoint = (await GetObject<Actor>(recipient))?.Inbox?.Id;
         if (endpoint == null) {
             return; //false
         }
-
+            
         var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
             Content = body,

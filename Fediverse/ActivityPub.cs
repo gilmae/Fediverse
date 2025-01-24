@@ -4,6 +4,7 @@ using KristofferStrube.ActivityStreams;
 using KristofferStrube.ActivityStreams.JsonLD;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using AS = KristofferStrube.ActivityStreams;
 
@@ -28,13 +29,16 @@ public class ActivityPub
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
     private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
 
+    private readonly ILogger<ActivityPub> _logger;
+
     private IServiceProvider _services;
 
-    public ActivityPub(IServiceProvider services)
+    public ActivityPub(IServiceProvider services, ILogger<ActivityPub> logger)
     {
         _services = services;
         _profileProvider = null;
-        _collectionDispatchers = new Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>>();        
+        _collectionDispatchers = new Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>>();
+        _logger = logger;
     }
 
     internal void SetProfileProvider(Func<Context, string, AS.Actor?> profileProvider)
@@ -111,11 +115,14 @@ public class ActivityPub
             new(new("https://w3id.org/security/v1"))
         };
         
-        return Results.Json(_profileProvider.Invoke(ctx, resource));
+        return Results.Json(_profileProvider.Invoke(ctx, resource), new JsonSerializerOptions() { }, "application/activity+json", 200);
     }
 
     internal IResult Inbox(JsonDocument message)
     {
+        _logger.LogInformation("Received inbox message");
+        _logger.LogInformation(JsonSerializer.Serialize(message));
+        
         if (message == null)
         {
             return Results.BadRequest();
