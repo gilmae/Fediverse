@@ -1,4 +1,3 @@
-using System.Security.Policy;
 using System.Text.Json;
 using KristofferStrube.ActivityStreams;
 using KristofferStrube.ActivityStreams.JsonLD;
@@ -157,7 +156,7 @@ public class ActivityPub
             ActivityType parsed;
             if (Enum.TryParse<ActivityType>(type, out parsed))
             {
-                Type? activityMessageType = Type.GetType($"KristofferStrube.ActivityStreams.{type}", false, true);
+                Type? activityMessageType = Type.GetType($"KristofferStrube.ActivityStreams.{type}, KristofferStrube.ActivityStreams", false, true);
                 if (activityMessageType == null) {
                     continue;
                 }
