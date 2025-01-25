@@ -86,14 +86,16 @@ public class ActivityPub
         {
             username = resource.Substring(5);
         }
+
+        username = username.Split("@")[0];
         var actor = ActorProfileLink(username);
-        if (actor == null) {
+        if (actor == null)
+        {
             return Results.NotFound();
         }
-
-        return Results.Json(new
+        var profile = new
         {
-            subject = $"{resource}@{GetHostName()}",
+            subject = $"{username}@{GetHostName()}",
             aliases = new[] { actor },
             links = new[] {
                     new {
@@ -102,7 +104,8 @@ public class ActivityPub
                         type="application/activity+json"
                     }
                 }
-        });
+        };
+        return Results.Json(profile);
     }
 
     internal async Task<IResult> Profile(string resource)
@@ -121,7 +124,7 @@ public class ActivityPub
             new(new("https://w3id.org/security/v1"))
         };
         
-        return Results.Json(_profileProvider.Invoke(ctx, resource), new JsonSerializerOptions() { }, "application/activity+json", 200);
+        return Results.Json(profile, new JsonSerializerOptions() { }, "application/activity+json", 200);
     }
 
     internal IResult Inbox(JsonDocument message)
