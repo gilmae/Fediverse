@@ -4,11 +4,27 @@ using Microsoft.AspNetCore.Http;
 using KristofferStrube.ActivityStreams;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Fediverse;
 
 public static class WebApplicationBuilderExtensions
 {
+    public static void UseActivityPub(this WebApplication app, Action<ActivityPubBuilder> configure)
+    {
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+        ActivityPubBuilder? activityPubBuilder = app.Services.GetRequiredService(typeof(ActivityPubBuilder)) as ActivityPubBuilder;
+        if (activityPubBuilder == null) {
+            throw new ArgumentNullException(nameof(activityPubBuilder));
+        }
+
+        configure(activityPubBuilder);
+    }
+
     public static void SetActorDispatcher(this WebApplication app, string pattern, Func<Context, string, Actor?> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;

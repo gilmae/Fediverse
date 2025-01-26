@@ -22,7 +22,7 @@ public enum CollectionDispatcherTypes {
 }
 public class ActivityPub
 {
-    private readonly string _host;
+    private string _host;
     private Func<Context, string, AS.Actor?>? _profileProvider;
     private Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>> _collectionDispatchers;
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
@@ -38,6 +38,10 @@ public class ActivityPub
         _profileProvider = null;
         _collectionDispatchers = new Dictionary<CollectionDispatcherTypes, Func<Context, string, string?, Collection>>();
         _logger = logger;
+    }
+
+    internal void Configure(string host) {
+        _host = host;
     }
 
     internal void SetProfileProvider(Func<Context, string, AS.Actor?> profileProvider)
@@ -57,20 +61,29 @@ public class ActivityPub
         _collectionDispatchers[type] = f;
     }
 
-    internal string? GetHostName() {
-        if (!string.IsNullOrEmpty(_host)) {
-            return _host;
+    internal string? GetHost()
+    {
+        return _host;
+    }
+
+    private Uri GetLink(string routeName, object? routeValues) {
+        LinkGenerator? linkGenerator = _services.GetService(typeof(LinkGenerator)) as LinkGenerator;
+        if (linkGenerator == null) {
+            throw new ArgumentNullException(nameof(linkGenerator));
         }
-        
-        var httpContextAccessor = _services.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        return httpContextAccessor?.HttpContext?.Request?.Host.Host;
+
+        string? uri = linkGenerator.GetUriByRouteValues(routeName, routeValues, "https", new HostString(_host));
+
+        if (string.IsNullOrEmpty(uri)) {
+            throw new ArgumentException(nameof(uri));
+        }
+
+        return new Uri(uri);        
     }
 
     private string? ActorProfileLink(string identifier)
     {
-        var httpContextAccessor = _services.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        LinkGenerator linkGenerator = _services.GetService(typeof(LinkGenerator)) as LinkGenerator;
-        return linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, new { identifier });
+        return GetLink(RoutingNames.Profile, new { identifier }).ToString();
     }
 
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
@@ -95,7 +108,7 @@ public class ActivityPub
         }
         var profile = new
         {
-            subject = $"{username}@{GetHostName()}",
+            subject = $"{username}@{GetHost()}",
             aliases = new[] { actor },
             links = new[] {
                     new {

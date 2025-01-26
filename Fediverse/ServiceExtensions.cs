@@ -8,7 +8,8 @@ public static class ServicesExtensions {
     {
         services.AddHttpContextAccessor();
         services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-        services.AddSingleton(typeof(ActivityPub));//, new ActivityPub(services));
+        services.AddSingleton(typeof(ActivityPub));
+        services.AddTransient(typeof(ActivityPubBuilder));
         services.AddTransient(typeof(Context));
         services.AddTransient(typeof(ActivityHandlerBuilder));
     }

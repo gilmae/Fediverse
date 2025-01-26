@@ -100,78 +100,22 @@ public class Context
 
     public string? GetActorUri(string identifier)
     {
-        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        if (httpContextAccessor == null)
-        {
-            return null;
-        }
-
-        if (httpContextAccessor.HttpContext == null)
-        {
-            return null;
-        }
-
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Profile, new { identifier });
-    }
+        return GetLink(RoutingNames.Profile, new { identifier }).ToString(); }
 
     public string? GetFollowersUri(string identifier) {
-       var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        if (httpContextAccessor == null)
-        {
-            return null;
-        }
-
-        if (httpContextAccessor.HttpContext == null)
-        {
-            return null;
-        }
-
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Followers, new { identifier });
-    }
+      return GetLink(RoutingNames.Followers, new { identifier }).ToString(); 
+      }
 
     public string? GetFollowingUri(string identifier) {
-       var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        if (httpContextAccessor == null)
-        {
-            return null;
-        }
-
-        if (httpContextAccessor.HttpContext == null)
-        {
-            return null;
-        }
-
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Following, new { identifier });
+      return GetLink(RoutingNames.Following, new { identifier }).ToString(); 
     }
 
     public string? GetInboxUri(string identifier) {
-        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        if (httpContextAccessor == null)
-        {
-            return null;
-        }
-
-        if (httpContextAccessor.HttpContext == null)
-        {
-            return null;
-        }
-
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Inbox, new { identifier });
+      return GetLink(RoutingNames.Inbox, new { identifier }).ToString(); 
     }
 
     public string? GetOutboxUri(string identifier) {
-        var httpContextAccessor = _serviceProvider.GetService(typeof(IHttpContextAccessor)) as IHttpContextAccessor;
-        if (httpContextAccessor == null)
-        {
-            return null;
-        }
-
-        if (httpContextAccessor.HttpContext == null)
-        {
-            return null;
-        }
-
-        return _linkGenerator.GetUriByRouteValues(httpContextAccessor.HttpContext, RoutingNames.Outbox, new { identifier });
+      return GetLink(RoutingNames.Outbox, new { identifier }).ToString(); 
     }
 
     public async Task<T?> GetObject<T>(AS.IObjectOrLink o)
@@ -203,4 +147,20 @@ public class Context
 
         return JsonSerializer.Deserialize<T>(body);
     }
+
+    private Uri GetLink(string routeName, object? routeValues) {
+        LinkGenerator? linkGenerator = _serviceProvider.GetService(typeof(LinkGenerator)) as LinkGenerator;
+        if (linkGenerator == null) {
+            throw new ArgumentNullException(nameof(linkGenerator));
+        }
+
+        string? uri = linkGenerator.GetUriByRouteValues(routeName, routeValues, "https", new HostString(_activityPub.GetHost()));
+
+        if (string.IsNullOrEmpty(uri)) {
+            throw new ArgumentException(nameof(uri));
+        }
+
+        return new Uri(uri);        
+    }
+
 }
