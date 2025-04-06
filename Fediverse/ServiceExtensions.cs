@@ -10,6 +10,7 @@ public static class ServicesExtensions {
         services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
         services.AddSingleton(typeof(ActivityPub));
         services.AddTransient(typeof(ActivityPubBuilder));
+        services.AddTransient(typeof(CollectionPaginationBuilder));
         services.AddTransient(typeof(Context));
         services.AddTransient(typeof(ActivityHandlerBuilder));
     }

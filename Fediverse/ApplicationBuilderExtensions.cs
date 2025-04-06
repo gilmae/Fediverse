@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Runtime.CompilerServices;
 
 namespace Fediverse;
 
@@ -19,7 +20,7 @@ public static class WebApplicationBuilderExtensions
         }
         ActivityPubBuilder? activityPubBuilder = app.Services.GetRequiredService(typeof(ActivityPubBuilder)) as ActivityPubBuilder;
         if (activityPubBuilder == null) {
-            throw new ArgumentNullException(nameof(activityPubBuilder));
+            throw new ArgumentNullException(nameof(activityPubBuilder));    
         }
 
         configure(activityPubBuilder);
@@ -75,28 +76,35 @@ public static class WebApplicationBuilderExtensions
         return app.Services.GetService(typeof(ActivityHandlerBuilder)) as ActivityHandlerBuilder;
     }
 
-    public static void SetFollowingDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, Collection> f)
+    public static CollectionPaginationBuilder? SetFollowingDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?)> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null)
         {
-            return;
+            return null;
         }
 
-        activity.setFollowingDispatcher(f);
+        activity.setCollectionDispatcher(CollectionDispatcherTypes.Following, f);
 
         app.MapGet(pattern, (string identifier, string? cursor = null) =>
         {
-            return  Results.Json(activity.Following(identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
+            return Results.Json(activity.GetCollection(CollectionDispatcherTypes.Following, identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
         }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Following);
+
+        CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
+        if (builder != null)
+        {
+            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Following);
+        }
+        return builder;
     }
 
-    public static void SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, Collection> f)
+    public static CollectionPaginationBuilder? SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?)> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null)
         {
-            return;
+            return null;
         }
 
         activity.setCollectionDispatcher(CollectionDispatcherTypes.Followers, f);
@@ -105,21 +113,35 @@ public static class WebApplicationBuilderExtensions
         {
             return Results.Json(activity.GetCollection(CollectionDispatcherTypes.Followers, identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
         }).WithName(RoutingNames.Followers);
+
+                 CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
+        if (builder != null)
+        {
+            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Outbox);
+        }
+        return builder;
     }
 
-    public static void SetOutboxDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, Collection> f)
+    public static CollectionPaginationBuilder? SetOutboxDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?)> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null)
         {
-            return;
+            return null;
         }
 
         activity.setCollectionDispatcher(CollectionDispatcherTypes.Outbox, f);
 
         app.MapGet(pattern, (string identifier, string? cursor = null) =>
         {
-            return  Results.Json(activity.GetCollection(CollectionDispatcherTypes.Outbox, identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
+            return Results.Json(activity.GetCollection(CollectionDispatcherTypes.Outbox, identifier, cursor), new JsonSerializerOptions() { }, "application/activity+json", 200);
         }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Outbox);
+        
+         CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
+        if (builder != null)
+        {
+            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Outbox);
+        }
+        return builder;
     }
 }

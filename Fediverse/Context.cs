@@ -12,7 +12,7 @@ namespace Fediverse;
 
 public class Context
 {
-    private LinkGenerator _linkGenerator;
+    private Microsoft.AspNetCore.Routing.LinkGenerator _linkGenerator;
     private IServiceProvider _serviceProvider;
     private HttpClient _httpClient;
     private ActivityPub _activityPub;
