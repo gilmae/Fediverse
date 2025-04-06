@@ -259,7 +259,11 @@ public class ActivityPub
             if (collectionDispatcher.FirstCursor != null)
             {
                 string firstCursor = collectionDispatcher.FirstCursor.Invoke(ctx, identifier);
-                orderedCollection.First = new Link { Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor=firstCursor }).ToString()) };
+                orderedCollection.First = new Link
+                {
+                    Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor = firstCursor }).ToString()),
+                    JsonLDContext = null
+                };
             }
             else
             {
@@ -275,7 +279,11 @@ public class ActivityPub
         };
         if (data.Count() > 0)
         {
-            collection.Next = new Link { Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor }).ToString()) };
+            collection.Next = new Link
+            {
+                Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor }).ToString()),
+                JsonLDContext = null
+            };
         }
         return collection;
     }
