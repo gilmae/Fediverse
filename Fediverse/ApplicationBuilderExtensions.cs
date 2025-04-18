@@ -117,7 +117,7 @@ public static class WebApplicationBuilderExtensions
                  CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
         if (builder != null)
         {
-            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Outbox);
+            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Followers);
         }
         return builder;
     }

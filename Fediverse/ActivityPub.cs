@@ -245,12 +245,11 @@ public class ActivityPub
         {
             return null;
         }
-        CollectionDispatcherSet? collectionDispatcher = null;
-        if (!_collectionDispatchers.TryGetValue(type, out  collectionDispatcher))
+        if (!_collectionDispatchers.TryGetValue(type, out CollectionDispatcherSet? collectionDispatcher))
         {
             return null;
         }
-         
+
         (IEnumerable<IObjectOrLink>? data, string? nextPage) = collectionDispatcher.Dispatcher.Invoke(ctx, identifier, cursor);
 
         if (data == null)
