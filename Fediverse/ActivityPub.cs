@@ -185,7 +185,7 @@ public class ActivityPub
 
         Identity identity = _profileProvider.Invoke(ctx, resource);
 
-        var profile = new AS.Actor
+        var profile = new AS.Person
         {
             JsonLDContext = new List<ReferenceTermDefinition> {
             new(new("https://www.w3.org/ns/activitystreams")),
