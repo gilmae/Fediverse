@@ -73,31 +73,6 @@ public class Context
         response.EnsureSuccessStatusCode();
     }
 
-    public CryptographicKey? GetActorKeyPairs(string identifier) {
-        string? owner = GetActorUri(identifier);
-        
-        if (string.IsNullOrEmpty(owner)) {
-            return null;
-        }
-
-        var pair = _activityPub.GetKeyPairsFromIdentifier(this, identifier);
-
-        if (pair == null) {
-            return null;
-        }
-
-        using (RSA publicKey = RSA.Create())
-        {
-            publicKey.ImportParameters(pair.Item2.Parameters);
-            return new CryptographicKey
-            {
-                Id = owner + "#main-key",
-                Owner = owner,
-                PublicKeyPem = publicKey.ExportRSAPublicKeyPem()
-            };
-        }
-    }
-
     public string? GetActorUri(string identifier)
     {
         return GetLink(RoutingNames.Profile, new { identifier }).ToString(); }

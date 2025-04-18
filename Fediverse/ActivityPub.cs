@@ -14,7 +14,7 @@ namespace Fediverse;
 public class ActivityPub
 {
     private string _host = default!;
-    private Func<Context, string, AS.Actor?>? _profileProvider;
+    private Func<Context, string, Identity?>? _profileProvider;
     private Dictionary<CollectionDispatcherTypes, CollectionDispatcherSet> _collectionDispatchers;
 
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
@@ -37,7 +37,7 @@ public class ActivityPub
         _host = host;
     }
 
-    internal void SetProfileProvider(Func<Context, string, AS.Actor?> profileProvider)
+    internal void SetProfileProvider(Func<Context, string, Identity?> profileProvider)
     {
         _profileProvider = profileProvider;
     }
@@ -135,6 +135,22 @@ public class ActivityPub
         }
 
         username = username.Split("@")[0];
+        Context ctx = _services.GetService(typeof(Context)) as Context;
+        if (ctx == null)
+        {
+            return Results.StatusCode(500);
+        }
+        if (_profileProvider == null)
+        {
+            return Results.StatusCode(500);
+        }
+
+        var identity = _profileProvider.Invoke(ctx, resource);
+        if (identity == null)
+        {
+            return Results.NotFound();
+        }
+
         var actor = ActorProfileLink(username);
         if (actor == null)
         {
@@ -155,25 +171,41 @@ public class ActivityPub
         return Results.Json(profile);
     }
 
-    internal async Task<IResult> Profile(string resource)
+    internal async Task<AS.Actor?> Profile(string resource)
     {
         Context ctx = _services.GetService(typeof(Context)) as Context;
         if (ctx == null)
         {
-            return Results.StatusCode(500);
+            return null;
         }
         if (_profileProvider == null)
         {
-            return Results.StatusCode(500);
+            return null;
         }
 
-        var profile = _profileProvider.Invoke(ctx, resource);
-        profile.JsonLDContext = new List<ReferenceTermDefinition> {
+        Identity identity = _profileProvider.Invoke(ctx, resource);
+
+        var profile = new AS.Actor
+        {
+            JsonLDContext = new List<ReferenceTermDefinition> {
             new(new("https://www.w3.org/ns/activitystreams")),
             new(new("https://w3id.org/security/v1"))
+        },
+            Id = identity.Url,
+            PreferredUsername = identity.PreferredUsername,
+            Name = [identity.Name],
+            Summary = [identity.Summary],
+            Url = [new AS.Link { Href = GetLink(RoutingNames.Profile, new { identifier = resource }), JsonLDContext = null }],
+            Inbox = new AS.Link { Href = GetLink(RoutingNames.Inbox, new { identifier = resource }), JsonLDContext = null },
+            Outbox = new AS.Link { Href = GetLink(RoutingNames.Outbox, new { identifier = resource }), JsonLDContext = null },
+            Following = new AS.Link { Href = GetLink(RoutingNames.Following, new { identifier = resource }), JsonLDContext = null },
+            Followers = new AS.Link { Href = GetLink(RoutingNames.Followers, new { identifier = resource }), JsonLDContext = null },
+            Icon = [new AS.Image { Id = identity.Icon?.ToString(), MediaType = "image/jpg", Url = [new AS.Link { Href = identity.Icon, JsonLDContext = null }] }],
+            Published = identity.JoinDate,
+
         };
 
-        return Results.Json(profile, new JsonSerializerOptions() { }, "application/activity+json", 200);
+        return profile;
     }
 
     internal IResult Inbox(JsonDocument message)
@@ -228,8 +260,15 @@ public class ActivityPub
         return Results.Ok();
     }
 
-    internal Tuple<RsaSecurityKey, RsaSecurityKey>? GetKeyPairsFromIdentifier(Context ctx, string identifier)
+    internal Tuple<RsaSecurityKey, RsaSecurityKey>? GetKeyPairsFromIdentifier(string identifier)
     {
+        Context? ctx = _services.GetService(typeof(Context)) as Context;
+
+        if (ctx == null)
+        {
+            return null;
+        }
+
         if (_keyPairsProvider == null)
         {
             return null;
