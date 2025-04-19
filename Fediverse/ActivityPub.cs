@@ -171,7 +171,7 @@ public class ActivityPub
         return Results.Json(profile);
     }
 
-    internal async Task<AS.Actor?> Profile(string resource)
+    internal async Task<Person?> Profile(string resource)
     {
         Context ctx = _services.GetService(typeof(Context)) as Context;
         if (ctx == null)
