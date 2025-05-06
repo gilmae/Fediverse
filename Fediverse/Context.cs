@@ -66,9 +66,15 @@ public class Context
         // }
 
         using HttpResponseMessage response = await _httpClient.SendAsync(request);
-        // var responseStream  = await response.Content.ReadAsStreamAsync();
-        // using StreamReader reader = new StreamReader(responseStream);
-        // var responseMessage = reader.ReadToEnd();
+        var responseStream  = await response.Content.ReadAsStreamAsync();
+        using StreamReader reader = new StreamReader(responseStream);
+        var responseMessage = reader.ReadToEnd();
+
+        _logger.LogInformation(
+            JsonSerializer.Serialize(
+                new { response.StatusCode, Response = responseMessage }
+            )
+        );
 
         response.EnsureSuccessStatusCode();
     }
