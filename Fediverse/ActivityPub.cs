@@ -145,7 +145,7 @@ public class ActivityPub
             return Results.StatusCode(500);
         }
 
-        var identity = _profileProvider.Invoke(ctx, resource);
+        var identity = _profileProvider.Invoke(ctx, username);
         if (identity == null)
         {
             return Results.NotFound();
