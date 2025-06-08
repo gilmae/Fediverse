@@ -47,7 +47,7 @@ public class ActivityPub
         _keyPairsProvider = keypairsProvider;
     }
 
-    internal void setCollectionDispatcher(CollectionDispatcherTypes type, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?)> f)
+    internal void setCollectionDispatcher(CollectionDispatcherTypes type, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
         CollectionDispatcherSet collectionDispatcher;
         if (_collectionDispatchers.ContainsKey(type))
@@ -289,7 +289,7 @@ public class ActivityPub
             return null;
         }
 
-        (IEnumerable<IObjectOrLink>? data, string? nextPage) = collectionDispatcher.Dispatcher.Invoke(ctx, identifier, cursor);
+        (IEnumerable<IObjectOrLink>? data, string? nextPage, int? totalItems) = collectionDispatcher.Dispatcher.Invoke(ctx, identifier, cursor);
 
         if (data == null)
         {
@@ -307,6 +307,10 @@ public class ActivityPub
             {
                 orderedCollection.Items = [];
             }
+            if (totalItems != null)
+            {
+                orderedCollection.TotalItems = (uint?)totalItems;
+            }
             return orderedCollection;
         }
 
@@ -315,6 +319,7 @@ public class ActivityPub
             Items = data,
 
         };
+
         if (data.Count() > 0)
         {
             collection.Next = new Link
@@ -322,6 +327,10 @@ public class ActivityPub
                 Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor }).ToString()),
                 JsonLDContext = null
             };
+        }
+        if (totalItems != null)
+        {
+            collection.TotalItems = (uint?)totalItems;
         }
         return collection;
     }

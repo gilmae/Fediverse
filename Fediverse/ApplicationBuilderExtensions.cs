@@ -92,7 +92,7 @@ public static class WebApplicationBuilderExtensions
         return app.Services.GetService(typeof(ActivityHandlerBuilder)) as ActivityHandlerBuilder;
     }
 
-    public static CollectionPaginationBuilder? SetFollowingDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?)> f)
+    public static CollectionPaginationBuilder? SetFollowingDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null)
@@ -115,7 +115,7 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 
-    public static CollectionPaginationBuilder? SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?)> f)
+    public static CollectionPaginationBuilder? SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null)
@@ -138,7 +138,7 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 
-    public static CollectionPaginationBuilder? SetOutboxDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?)> f)
+    public static CollectionPaginationBuilder? SetOutboxDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null)
