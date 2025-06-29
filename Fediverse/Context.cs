@@ -89,6 +89,11 @@ public class Context
         return GetLink(RoutingNames.Thing, new { user, identifier }).ToString();
     }
 
+    public string? GetActivityUri(string user, string identifier)
+    {
+        return GetLink(RoutingNames.Activity, new { user, identifier }).ToString();
+    }
+
     public string? GetFollowersUri(string identifier)
     {
         return GetLink(RoutingNames.Followers, new { identifier }).ToString();

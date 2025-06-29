@@ -16,6 +16,7 @@ public class ActivityPub
     private string _host = default!;
     private Func<Context, string, Identity?>? _profileProvider;
     private Func<Context, string, string, IObject?>? _thingProvider;
+    private Func<Context, string, string, Activity?>? _activityProvider;
     private Dictionary<CollectionDispatcherTypes, CollectionDispatcherSet> _collectionDispatchers;
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
     private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
@@ -43,6 +44,11 @@ public class ActivityPub
     internal void SetThingProvider(Func<Context, string, string, IObject?> thingProvider)
     {
         _thingProvider = thingProvider;
+    }
+
+    internal void SetActivityProvider(Func<Context, string, string, Activity?> provider)
+    {
+        _activityProvider = provider;
     }
 
     internal void setKeypairsProvider(Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>> keypairsProvider)
@@ -128,6 +134,11 @@ public class ActivityPub
         return GetLink(RoutingNames.Thing, new { user, identifier }).ToString();
     }
 
+    private string? ActivityLink(string user, string identifier)
+    {
+        return GetLink(RoutingNames.Activity, new { user, identifier }).ToString();
+    }
+
     internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
     {
         _activityHandlers[type] = handler;
@@ -205,8 +216,8 @@ public class ActivityPub
         },
             Id = ActorProfileLink(resource).ToString(),
             PreferredUsername = identity?.PreferredUsername,
-            Name = [identity.Name??""],
-            Summary = [identity.Summary??""],
+            Name = [identity.Name ?? ""],
+            Summary = [identity.Summary ?? ""],
             Url = [new AS.Link { Href = new Uri(identity.Url), JsonLDContext = null }],
             Inbox = new AS.Link { Href = GetLink(RoutingNames.Inbox, new { identifier = resource }), JsonLDContext = null },
             Outbox = new AS.Link { Href = GetLink(RoutingNames.Outbox, new { identifier = resource }), JsonLDContext = null },
@@ -233,12 +244,41 @@ public class ActivityPub
         }
 
         var thing = _thingProvider.Invoke(ctx, user, identifier);
+        if (thing == null)
+        {
+            return thing;
+        }
         thing.JsonLDContext = new List<ReferenceTermDefinition> {
             new(new("https://www.w3.org/ns/activitystreams")),
             new(new("https://w3id.org/security/v1")) };
-        thing.Id = ThingLink(user, identifier);    
-        
+        thing.Id = ThingLink(user, identifier);
+
         return thing;
+    }
+
+    internal async Task<Activity?> Activity(string user, string identifier)
+    {
+        Context? ctx = _services.GetService(typeof(Context)) as Context;
+        if (ctx == null)
+        {
+            return null;
+        }
+        if (_activityProvider == null)
+        {
+            return null;
+        }
+
+        var activity = _activityProvider.Invoke(ctx, user, identifier);
+        if (activity == null)
+        {
+            return activity;
+        }
+        activity.JsonLDContext = new List<ReferenceTermDefinition> {
+            new(new("https://www.w3.org/ns/activitystreams")),
+            new(new("https://w3id.org/security/v1")) };
+        activity.Id = ActivityLink(user, identifier);
+
+        return activity;
     }
 
     internal IResult Inbox(JsonDocument message)

@@ -10,4 +10,5 @@ public static class RoutingNames
     public const string Outbox = "ActivityPubOutbox";
 
     public const string Thing = "ActivityPubThing";
+    public const string Activity = "ActivityPubActivity";
 }

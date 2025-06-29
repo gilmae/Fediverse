@@ -85,6 +85,26 @@ public static class WebApplicationBuilderExtensions
             return Results.Json(thing, new JsonSerializerOptions() { }, "application/activity+json", 200);
         }).WithName(RoutingNames.Thing);
     }
+
+    public static void SetActivityDispatcher(this WebApplication app, string pattern, Func<Context, string, string, Activity?> f)
+    {
+        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        if (activity == null)
+        {
+            return;
+        }
+
+        activity.SetActivityProvider(f);
+        app.MapGet(pattern, async (string user, string identifier) =>
+        {
+            Activity? a = await activity.Activity(user, identifier);
+            if (a == null)
+            {
+                return Results.NotFound();
+            }
+            return Results.Json(a, new JsonSerializerOptions() { }, "application/activity+json", 200);
+        }).WithName(RoutingNames.Activity);
+    }
     
 
     public static void SetKeyPairsDispatcher(this WebApplication app, Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>> f)
