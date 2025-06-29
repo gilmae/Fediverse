@@ -81,11 +81,18 @@ public class Context
 
     public string? GetActorUri(string identifier)
     {
-        return GetLink(RoutingNames.Profile, new { identifier }).ToString(); }
+        return GetLink(RoutingNames.Profile, new { identifier }).ToString();
+    }
+    
+    public string? GetThingUri(string user, string identifier)
+    {
+        return GetLink(RoutingNames.Thing, new { user, identifier }).ToString();
+    }
 
-    public string? GetFollowersUri(string identifier) {
-      return GetLink(RoutingNames.Followers, new { identifier }).ToString(); 
-      }
+    public string? GetFollowersUri(string identifier)
+    {
+        return GetLink(RoutingNames.Followers, new { identifier }).ToString();
+    }
 
     public string? GetFollowingUri(string identifier) {
       return GetLink(RoutingNames.Following, new { identifier }).ToString(); 

@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Fediverse;
 
@@ -64,6 +65,27 @@ public static class WebApplicationBuilderExtensions
             return Results.Json(profile, new JsonSerializerOptions() { }, "application/activity+json", 200);
         }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Profile);
     }
+
+    public static void SetThingDispatcher(this WebApplication app, string pattern, Func<Context, string, string, IObject?> f)
+    {
+        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        if (activity == null)
+        {
+            return;
+        }
+
+        activity.SetThingProvider(f);
+        app.MapGet(pattern, async (string user, string identifier) =>
+        {
+            IObject? thing = await activity.Thing(user, identifier);
+            if (thing == null)
+            {
+                return Results.NotFound();
+            }
+            return Results.Json(thing, new JsonSerializerOptions() { }, "application/activity+json", 200);
+        }).WithName(RoutingNames.Thing);
+    }
+    
 
     public static void SetKeyPairsDispatcher(this WebApplication app, Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>> f)
     {
