@@ -397,7 +397,7 @@ public class ActivityPub
         {
             collection.Next = new Link
             {
-                Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, nextPage }).ToString()),
+                Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor=nextPage }).ToString()),
                 JsonLDContext = null
             };
         }
