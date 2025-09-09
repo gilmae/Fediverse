@@ -326,6 +326,11 @@ public class ActivityPub
                 {
                     continue;
                 }
+
+                if (!_activityHandlers.ContainsKey(parsed))
+                {
+                    continue;
+                }
                 _activityHandlers[parsed].Invoke(ctx, (AS.Activity)JsonSerializer.Deserialize(message, activityMessageType));
             }
         }

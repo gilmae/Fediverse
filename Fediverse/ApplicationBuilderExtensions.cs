@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography;
-using System.Text;
+using System.Diagnostics;
 
 namespace Fediverse;
 
@@ -86,7 +86,7 @@ public static class WebApplicationBuilderExtensions
         }).WithName(RoutingNames.Thing);
     }
 
-    public static void SetActivityDispatcher(this WebApplication app, string pattern, Func<Context, string, string, Activity?> f)
+    public static void SetActivityDispatcher(this WebApplication app, string pattern, Func<Context, string, string, KristofferStrube.ActivityStreams.Activity?> f)
     {
         var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
         if (activity == null)
@@ -97,7 +97,7 @@ public static class WebApplicationBuilderExtensions
         activity.SetActivityProvider(f);
         app.MapGet(pattern, async (string user, string identifier) =>
         {
-            Activity? a = await activity.Activity(user, identifier);
+            KristofferStrube.ActivityStreams.Activity? a = await activity.Activity(user, identifier);
             if (a == null)
             {
                 return Results.NotFound();
@@ -117,13 +117,10 @@ public static class WebApplicationBuilderExtensions
         activity.setKeypairsProvider(f);
     }
 
-    public static ActivityHandlerBuilder? SetInboxListener(this WebApplication app, string pattern)
+    public static ActivityHandlerBuilder SetInboxListener(this WebApplication app, string pattern)
     {
-        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
-        if (activity == null)
-        {
-            return null;
-        }
+        ActivityPub? activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        Debug.Assert(activity != null);
 
         app.MapPost(pattern, (string identifier, [FromBody] JsonDocument message) =>
         {
@@ -131,15 +128,20 @@ public static class WebApplicationBuilderExtensions
             return Results.Accepted();
         }).WithName(RoutingNames.Inbox);
 
-        return app.Services.GetService(typeof(ActivityHandlerBuilder)) as ActivityHandlerBuilder;
+        ActivityHandlerBuilder? builder = app.Services.GetService(typeof(ActivityHandlerBuilder)) as ActivityHandlerBuilder;
+        Debug.Assert(builder != null);
+
+        return builder;
     }
 
-    public static CollectionPaginationBuilder? SetFollowingDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
+    public static CollectionPaginationBuilder SetFollowingDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
-        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        ActivityPub? activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        Debug.Assert(activity!= null);
+
         if (activity == null)
         {
-            return null;
+            throw new ArgumentNullException(nameof(activity));
         }
 
         activity.setCollectionDispatcher(CollectionDispatcherTypes.Following, f);
@@ -150,20 +152,16 @@ public static class WebApplicationBuilderExtensions
         }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Following);
 
         CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
-        if (builder != null)
-        {
-            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Following);
-        }
+        Debug.Assert(builder != null);
+
+        builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Following);
         return builder;
     }
 
-    public static CollectionPaginationBuilder? SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
+    public static CollectionPaginationBuilder SetFollowersDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
-        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
-        if (activity == null)
-        {
-            return null;
-        }
+        ActivityPub? activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        Debug.Assert(activity != null);
 
         activity.setCollectionDispatcher(CollectionDispatcherTypes.Followers, f);
 
@@ -173,20 +171,17 @@ public static class WebApplicationBuilderExtensions
         }).WithName(RoutingNames.Followers);
 
         CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
-        if (builder != null)
-        {
-            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Followers);
-        }
+        Debug.Assert(builder != null);
+        
+        builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Followers);
+        
         return builder;
     }
 
-    public static CollectionPaginationBuilder? SetOutboxDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
+    public static CollectionPaginationBuilder SetOutboxDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
-        var activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
-        if (activity == null)
-        {
-            return null;
-        }
+        ActivityPub? activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
+        Debug.Assert(activity != null);
 
         activity.setCollectionDispatcher(CollectionDispatcherTypes.Outbox, f);
 
@@ -196,10 +191,9 @@ public static class WebApplicationBuilderExtensions
         }).Produces(200, null, "application/activity+json").WithName(RoutingNames.Outbox);
 
         CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
-        if (builder != null)
-        {
-            builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Outbox);
-        }
+        Debug.Assert(builder != null);
+
+        builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Outbox);
         return builder;
     }
     

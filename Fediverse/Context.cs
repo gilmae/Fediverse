@@ -12,16 +12,14 @@ namespace Fediverse;
 
 public class Context
 {
-    private Microsoft.AspNetCore.Routing.LinkGenerator _linkGenerator;
     private IServiceProvider _serviceProvider;
     private HttpClient _httpClient;
     private ActivityPub _activityPub;
     private readonly ILogger<Context> _logger;
 
-    public Context(ILogger<Context> logger, ActivityPub activityPub, IServiceProvider serviceProvider, LinkGenerator linkGenerator, IHttpClientFactory httpClientFactory)
+    public Context(ILogger<Context> logger, ActivityPub activityPub, IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory)
     {
         _serviceProvider = serviceProvider;
-        _linkGenerator = linkGenerator;
         _httpClient = httpClientFactory.CreateClient("activityPub");
         _activityPub = activityPub;
         _logger = logger;
