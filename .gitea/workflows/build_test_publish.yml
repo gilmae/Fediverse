@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 8.0.x
-        source-url: ${{ env.NUGET_URL }}
+        source-url: ${{ vars.NUGET_URL }}
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN }}
     - name: Restore dependencies
@@ -31,6 +31,6 @@ jobs:
     - name: Publish
       run: |
         dotnet nuget push **/*.nupkg \
-          --source ${{ env.NUGET_URL }} \
+          --source ${{ vars.NUGET_URL }} \
           --skip-duplicate \
           --api-key ${{secrets.NUGET_AUTH_TOKEN }}
