@@ -70,7 +70,7 @@ public class Context
 
         _logger.LogInformation(
             JsonSerializer.Serialize(
-                new { response.StatusCode, Response = responseMessage }
+                new { response.StatusCode, Response = responseMessage, response.Headers }
             )
         );
 

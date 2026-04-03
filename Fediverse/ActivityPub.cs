@@ -19,7 +19,7 @@ public class ActivityPub
     private Func<Context, string, string, Activity?>? _activityProvider;
     private Dictionary<CollectionDispatcherTypes, CollectionDispatcherSet> _collectionDispatchers;
     private Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>>? _keyPairsProvider;
-    private readonly IDictionary<ActivityType, Action<Context, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, AS.Activity>>();
+    private readonly IDictionary<ActivityType, Action<Context, string, AS.Activity>> _activityHandlers = new Dictionary<ActivityType, Action<Context, string, AS.Activity>>();
     private readonly ILogger<ActivityPub> _logger;
     private IServiceProvider _services;
 
@@ -139,7 +139,7 @@ public class ActivityPub
         return GetLink(RoutingNames.Activity, new { user, identifier }).ToString();
     }
 
-    internal void RegisterHandler(ActivityType type, Action<Context, AS.Activity> handler)
+    internal void RegisterHandler(ActivityType type, Action<Context, string, AS.Activity> handler)
     {
         _activityHandlers[type] = handler;
     }
@@ -281,7 +281,7 @@ public class ActivityPub
         return activity;
     }
 
-    internal IResult Inbox(JsonDocument message)
+    internal IResult Inbox(string identifier, JsonDocument message)
     {
         _logger.LogInformation("Received inbox message");
         _logger.LogInformation(JsonSerializer.Serialize(message));
@@ -331,7 +331,7 @@ public class ActivityPub
                 {
                     continue;
                 }
-                _activityHandlers[parsed].Invoke(ctx, (AS.Activity)JsonSerializer.Deserialize(message, activityMessageType));
+                _activityHandlers[parsed].Invoke(ctx, identifier, (AS.Activity)JsonSerializer.Deserialize(message, activityMessageType));
             }
         }
 
@@ -402,7 +402,7 @@ public class ActivityPub
         {
             collection.Next = new Link
             {
-                Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor=nextPage }).ToString()),
+                Href = new Uri(GetLink(type.GetRoutingName(), new { identifier, cursor = nextPage }).ToString()),
                 JsonLDContext = null
             };
         }

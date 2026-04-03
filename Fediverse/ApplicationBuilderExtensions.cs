@@ -105,7 +105,7 @@ public static class WebApplicationBuilderExtensions
             return Results.Json(a, new JsonSerializerOptions() { }, "application/activity+json", 200);
         }).WithName(RoutingNames.Activity);
     }
-    
+
 
     public static void SetKeyPairsDispatcher(this WebApplication app, Func<Context, string, Tuple<RsaSecurityKey, RsaSecurityKey>> f)
     {
@@ -124,7 +124,7 @@ public static class WebApplicationBuilderExtensions
 
         app.MapPost(pattern, (string identifier, [FromBody] JsonDocument message) =>
         {
-            activity.Inbox(message);
+            activity.Inbox(identifier, message);
             return Results.Accepted();
         }).WithName(RoutingNames.Inbox);
 
@@ -137,7 +137,7 @@ public static class WebApplicationBuilderExtensions
     public static CollectionPaginationBuilder SetFollowingDispatcher(this WebApplication app, string pattern, Func<Context, string, string?, (IEnumerable<IObjectOrLink>?, string?, int?)> f)
     {
         ActivityPub? activity = app.Services.GetService(typeof(ActivityPub)) as ActivityPub;
-        Debug.Assert(activity!= null);
+        Debug.Assert(activity != null);
 
         if (activity == null)
         {
@@ -172,9 +172,9 @@ public static class WebApplicationBuilderExtensions
 
         CollectionPaginationBuilder? builder = app.Services.GetService(typeof(CollectionPaginationBuilder)) as CollectionPaginationBuilder;
         Debug.Assert(builder != null);
-        
+
         builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Followers);
-        
+
         return builder;
     }
 
@@ -196,10 +196,12 @@ public static class WebApplicationBuilderExtensions
         builder.SetCollectionDispatcherType(CollectionDispatcherTypes.Outbox);
         return builder;
     }
-    
-    private static CryptographicKey? TransformKeyPairs(string owner, Tuple<RsaSecurityKey, RsaSecurityKey>? pair) {
-    
-        if (pair == null) {
+
+    private static CryptographicKey? TransformKeyPairs(string owner, Tuple<RsaSecurityKey, RsaSecurityKey>? pair)
+    {
+
+        if (pair == null)
+        {
             return null;
         }
 
